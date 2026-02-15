@@ -1,0 +1,51 @@
+.alert-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.55);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10001;
+}
+
+.alert-modal {
+    width: min(92vw, 420px);
+    background: #f2f2f5;
+    color: #18181a;
+    border-radius: 12px;
+    box-shadow:
+        0 8px 24px rgba(0, 0, 0, 0.2),
+        0 2px 6px rgba(0, 0, 0, 0.2);
+    padding: 18px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.alert-header h2 {
+    margin: 0;
+    font-size: 18px;
+}
+
+.alert-body p {
+    margin: 0;
+    font-size: 14px;
+}
+
+.alert-actions {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.alert-actions button {
+    border: none;
+    background: #35363e;
+    color: #ffffff;
+    padding: 8px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.alert-actions button:hover {
+    background: #2a2b31;
+}

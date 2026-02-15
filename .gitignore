@@ -1,0 +1,49 @@
+# Root ignore for mono-repo
+
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+build/
+coverage/
+.nyc_output/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# Environment files
+.env
+.env.*
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Temp / runtime
+.tmp/
+.temp/
+tmp/
+pids/
+*.pid
+*.pid.lock
+*.seed
+report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
+
+# Vite / tooling
+dist-ssr/
+
+# Docker
+**/.dockerignore

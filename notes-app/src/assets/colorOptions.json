@@ -1,0 +1,26 @@
+[
+  {
+    "id": "rhino-violet",
+    "colorHeader": "#D1BFF0",
+    "colorBody": "#EEE6FB",
+    "colorText": "#18181A"
+  },
+  {
+    "id": "rhino-violet-stronger",
+    "colorHeader": "#BCA2E9",
+    "colorBody": "#E9DDFB",
+    "colorText": "#18181A"
+  },
+  {
+    "id": "rhino-yellow",
+    "colorHeader": "#F2D66B",
+    "colorBody": "#FFF2C2",
+    "colorText": "#18181A"
+  },
+  {
+    "id": "rhino-green",
+    "colorHeader": "#79C97A",
+    "colorBody": "#D7F3D7",
+    "colorText": "#18181A"
+  }
+]

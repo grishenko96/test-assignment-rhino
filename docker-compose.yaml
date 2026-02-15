@@ -1,0 +1,64 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: notes-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: notabigsecret
+      POSTGRES_DB: postgres
+    ports:
+      - "5400:5432"
+    volumes:
+      - notes-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  notes-api-migrate:
+    build:
+      context: ./notes-api
+      target: build
+    container_name: notes-api-migrate
+    command: npm run migration:run
+    environment:
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_USERNAME: postgres
+      DB_PASSWORD: notabigsecret
+      DB_NAME: postgres
+    depends_on:
+      db:
+        condition: service_healthy
+
+  notes-api:
+    build:
+      context: ./notes-api
+    container_name: notes-api
+    environment:
+      APP_PORT: 3000
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_USERNAME: postgres
+      DB_PASSWORD: notabigsecret
+      DB_NAME: postgres
+    depends_on:
+      notes-api-migrate:
+        condition: service_completed_successfully
+    ports:
+      - "4000:3000"
+
+  notes-app:
+    build:
+      context: ./notes-app
+      args:
+        VITE_NOTES_API_URL: /api
+    container_name: notes-app
+    depends_on:
+      - notes-api
+    ports:
+      - "8000:80"
+
+volumes:
+  notes-db-data:
