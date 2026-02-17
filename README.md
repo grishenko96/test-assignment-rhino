@@ -25,7 +25,7 @@ docker compose up --build
 
 Open:
 
-- App: `http://localhost:8080`
+- App: `http://localhost:8000`
 - API: `http://localhost:4000/api/notes`
 
 Notes:
