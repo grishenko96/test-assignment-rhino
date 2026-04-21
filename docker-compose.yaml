@@ -36,6 +36,13 @@ services:
     build:
       context: ./notes-api
     container_name: notes-api
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
     environment:
       APP_PORT: 3000
       DB_HOST: db
@@ -43,11 +50,13 @@ services:
       DB_USERNAME: postgres
       DB_PASSWORD: notabigsecret
       DB_NAME: postgres
+      CORS_ORIGIN: http://localhost:8000
+      THROTTLE_TTL_MS: 60000
+      THROTTLE_LIMIT: 100
+      LOG_LEVEL: info
     depends_on:
       notes-api-migrate:
         condition: service_completed_successfully
-    ports:
-      - "4000:3000"
 
   notes-app:
     build:
@@ -55,10 +64,17 @@ services:
       args:
         VITE_NOTES_API_URL: /api
     container_name: notes-app
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
     depends_on:
       - notes-api
     ports:
-      - "8000:80"
+      - "8000:8080"
 
 volumes:
   notes-db-data:

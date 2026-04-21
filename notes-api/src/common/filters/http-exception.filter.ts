@@ -4,12 +4,15 @@ import {
   ExceptionFilter,
   HttpException,
   HttpStatus,
-  Logger,
 } from '@nestjs/common';
+import { InjectPinoLogger, PinoLogger } from 'nestjs-pino';
 
 @Catch()
 export class GlobalHttpExceptionFilter implements ExceptionFilter {
-  private readonly logger = new Logger(GlobalHttpExceptionFilter.name);
+  constructor(
+    @InjectPinoLogger(GlobalHttpExceptionFilter.name)
+    private readonly logger: PinoLogger,
+  ) {}
 
   catch(exception: unknown, host: ArgumentsHost): void {
     const ctx = host.switchToHttp();
@@ -31,10 +34,24 @@ export class GlobalHttpExceptionFilter implements ExceptionFilter {
         : (errorResponse as { message?: string | string[] }).message ??
           'Internal server error';
 
-    this.logger.error(
-      `${request.method} ${request.url} ${status}`,
-      exception instanceof Error ? exception.stack : String(exception),
-    );
+    const logPayload = {
+      method: request.method,
+      url: request.url,
+      statusCode: status,
+      message,
+    };
+
+    if (status >= HttpStatus.INTERNAL_SERVER_ERROR) {
+      this.logger.error(
+        {
+          ...logPayload,
+          err: exception,
+        },
+        'HTTP request failed',
+      );
+    } else {
+      this.logger.warn(logPayload, 'HTTP request rejected');
+    }
 
     response.status(status).json({
       statusCode: status,

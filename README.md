@@ -1,83 +1,135 @@
-# Notes App (Frontend + API)
+# Notes App
 
-A lightweight sticky‑notes board: create notes, drag them around, edit text with auto‑save, change colors, and delete.
+A lightweight sticky-notes board with a React frontend, NestJS API, and PostgreSQL database.
 
 ## Features
 
 - Create, edit, delete notes
 - Drag notes across the board
-- Auto‑save text and position
-- Color palette per note
+- Auto-save note text and position
+- Change note color themes
 
-## Structure
+## Project Structure
 
-- `notes-app/` — React frontend
-- `notes-api/` — NestJS API
-- `docker-compose.yaml` — local orchestration (app + api + db)
+- `notes-app/` - React + Vite frontend served by nginx in Docker
+- `notes-api/` - NestJS API with TypeORM migrations
+- `docker-compose.yaml` - local Docker setup for app, API, database, and migration runner
 
-## Quick Start (Docker)
+## Quick Start With Docker
 
-Build and run everything:
+Build and run the full stack:
 
 ```bash
 docker compose up --build
 ```
 
-Open:
+Open the app:
 
-- App: `http://localhost:8000`
-- API: `http://localhost:4000/api/notes`
+```text
+http://localhost:8000
+```
 
-Notes:
-- The app is built with `VITE_NOTES_API_URL=/api` and proxies through nginx to the API.
-- Migrations run automatically on startup via a one‑off container.
+In Docker, the browser talks to nginx on `localhost:8000`. nginx proxies `/api/*` to the API container internally. The API container is not published directly to the host by default.
 
-## Local Dev (without Docker)
+The database is published for local inspection on:
+
+```text
+localhost:5400
+```
+
+Migrations run automatically through the `notes-api-migrate` service before `notes-api` starts.
+
+## Local Development Without Docker
+
+### Database
+
+Start PostgreSQL locally:
+
+```bash
+docker run --rm \
+  -p 5400:5432 \
+  -e POSTGRES_USER=postgres \
+  -e POSTGRES_PASSWORD=notabigsecret \
+  -e POSTGRES_DB=postgres \
+  postgres:16-alpine
+```
 
 ### API
 
-1. Set env in `notes-api/.env`:
-   - `APP_PORT=3000`
-   - `DB_HOST=localhost`
-   - `DB_PORT=5430`
-   - `DB_USERNAME=postgres`
-   - `DB_PASSWORD=notabigsecret`
-   - `DB_NAME=postgres`
-2. Run database (example):
+Create or update `notes-api/.env`:
 
-```bash
-docker run --rm -p 5430:5432 -e POSTGRES_PASSWORD=notabigsecret -e POSTGRES_DB=postgres postgres:16-alpine
+```env
+APP_PORT=4001
+DB_HOST=localhost
+DB_PORT=5400
+DB_USERNAME=postgres
+DB_PASSWORD=notabigsecret
+DB_NAME=postgres
+CORS_ORIGIN=http://localhost:5173,http://localhost:8000
+THROTTLE_TTL_MS=60000
+THROTTLE_LIMIT=100
+LOG_LEVEL=debug
 ```
 
-3. Run migrations:
+Install dependencies, run migrations, and start the API:
 
 ```bash
 cd notes-api
+npm install
 npm run migration:run
-```
-
-4. Start API:
-
-```bash
-cd notes-api
 npm run start:dev
 ```
 
-### App
+The local API is available at:
 
-1. Set env in `notes-app/.env`:
-   - `VITE_NOTES_API_URL=http://localhost:3000/api/`
+```text
+http://localhost:4001/api/notes
+```
 
-2. Start app:
+### Frontend
+
+Create or update `notes-app/.env`:
+
+```env
+VITE_NOTES_API_URL=http://localhost:4001/api
+```
+
+Install dependencies and start Vite:
 
 ```bash
 cd notes-app
+npm install
 npm run dev
 ```
 
-Open `http://localhost:5173`.
+Open:
 
-## Scripts
+```text
+http://localhost:5173
+```
+
+## Environment Variables
+
+API:
+
+- `APP_PORT` - API port, for example `4001` locally or `3000` in Docker
+- `DB_HOST` - PostgreSQL host
+- `DB_PORT` - PostgreSQL port
+- `DB_USERNAME` - PostgreSQL username
+- `DB_PASSWORD` - PostgreSQL password
+- `DB_NAME` - PostgreSQL database name
+- `CORS_ORIGIN` - comma-separated list of allowed browser origins
+- `THROTTLE_TTL_MS` - rate-limit window in milliseconds
+- `THROTTLE_LIMIT` - max requests per rate-limit window
+- `LOG_LEVEL` - Pino log level, for example `debug` locally or `info` in production
+
+Frontend:
+
+- `VITE_NOTES_API_URL` - API base URL used by the browser app
+
+For production, set environment variables in the deployment environment instead of committing real secrets. `CORS_ORIGIN` should contain the production frontend origin, not localhost.
+
+## Useful Scripts
 
 API:
 
@@ -86,19 +138,22 @@ cd notes-api
 npm run build
 npm run start:dev
 npm run migration:run
+npm run migration:revert
+npm test
 ```
 
-App:
+Frontend:
 
 ```bash
 cd notes-app
 npm run build
 npm run dev
+npm run lint
 ```
 
 ## Docker Images
 
-API:
+Build and run the API image manually:
 
 ```bash
 cd notes-api
@@ -106,10 +161,19 @@ docker build -t notes-api .
 docker run --rm -p 3000:3000 --env-file .env notes-api
 ```
 
-App:
+Build and run the frontend image manually:
 
 ```bash
 cd notes-app
-docker build -t notes-app .
-docker run --rm -p 8080:80 notes-app
+docker build --build-arg VITE_NOTES_API_URL=/api -t notes-app .
+docker run --rm -p 8000:8080 notes-app
 ```
+
+## Security Notes
+
+- CORS is restricted through `CORS_ORIGIN`.
+- Global API rate limiting is enabled through `@nestjs/throttler`.
+- API logs use Pino structured logging through `nestjs-pino`.
+- Runtime containers run without root privileges where possible.
+- `notes-api` and `notes-app` use `read_only`, `tmpfs`, `cap_drop: ALL`, and `no-new-privileges` in Docker Compose.
+- The current local database password is for development only. Use deployment secrets in production.

@@ -17,12 +17,6 @@ export class AddEnumColorTheme1771148664737 implements MigrationInterface {
       new TableColumn({
         name: 'colors_theme',
         type: 'enum',
-        enum: [
-          'rhino-green',
-          'rhino-yellow',
-          'rhino-violet-stronger',
-          'rhino-violet',
-        ],
         enumName: 'note_color_theme_enum',
         isNullable: false,
       }),
